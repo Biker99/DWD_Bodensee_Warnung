@@ -1,0 +1,118 @@
+<!DOCTYPE HTML>
+<html lang="de">
+        <head>
+                <title>Warnwetter f&uuml;r den Bodensee</title>
+                <meta charset="UTF-8">
+                <meta name="description" content="Auswertung der DWD Warnwetter Meldung, zur Verfügung gestellt via JSON datei">
+                <meta name="keywords" content="DWD, Warnwetter, Sturm, Starkwind, Bodensee, Sturmwarnung, Lindauer Kanuclub">
+                <meta name="date" content="2021-07-18">
+                <meta name="author" content="Stefan Baiker">
+				<style>
+                        ul{list-style:none; margin:2px 0 0 0;width:100%;}
+                        ul li span:first-child{padding:0 12px 0 0;color:orange;font-weight:bold;}
+                        #name {font-weight:bold}
+                        #meldungen {}
+                        #west {}
+                        #mitte {}
+                        #ost {}                  
+                </style>
+        </head>
+		
+		<!--
+			 Hinweis und Beschreibung zum JSON vom DWD:
+			 - "event":"STURM" und "event":"STARKWIND" sind Spezifika für Gewässer.
+			 - "time", "start" und "end" sind in Millie-Sekunden angegeben (time in milliseconds, between the CURRENT TIME and MIDNIGHT, JANUARY 1, 1970 UTC(coordinated universal time))
+			 - Weitere Information gibts beim DWD.
+			 - Für Gewässer(hier im Code umgesetzt) gibt es nur eine event Meldung pro region. 
+			   Bei Regionen über "Land" können es auch mehrere "event" gleichzeitig hinter einer Warnregionen (Neun-Stellige Nummer) sein 
+			   z.B. "ERGIEBIGER DAUERREGEN" und "DAUERREGEN" 
+			   Das ist hier im Code nicht berücksichtigt!
+
+			 DWD Warnmessage: 
+			 https://www.dwd.de/DWD/warnungen/warnapp/json/warnings.json
+		-->
+        <body >
+                <header><h3>Warnwetter f&uuml;r den Bodensee</h3></header>
+                <script>
+					let objectItem = 0;
+					// die vier Parameter "FreqW_FreqM_FreqO_size" ergeben den gewählten Bilder Dateinamen. (z.B. 00_00_00_350.png)
+					FreqW="00";	// keine Wetter Warnung für die gewählte Bodensee Region (Bodensee - West) verfügbar
+					FreqM="00"; // keine Wetter Warnung für die gewählte Bodensee Region (Bodensee - Mitte) verfügbar
+					FreqO="00"; // keine Wetter Warnung für die gewählte Bodensee Region Bodensee - Ost) verfügbar
+					size="350"; // Bilderhöhe. Ist Bestandteil des Dateinamens.
+							
+
+					let warnWetter = {
+                        loadWarnings: function(obj){
+                                for(objectItem in obj.warnings){						
+                                        switch (obj.warnings[objectItem][0].regionName) {
+                                        case ('Bodensee - West'): //Suche nach "regionName" == Bodensee - West
+                                                if (obj.warnings[objectItem][0].event == 'STARKWIND') {FreqW = "40";} // wenn "event" = STARKWIND", dann Bodensee Sturmwarnleuchten Frequenz = 40 Blinker/Minute
+                                                else if (obj.warnings[objectItem][0].event == 'STURM') {FreqW = "90";}// wenn "event" = STURM", dann Bodensee Sturmwarnleuchten Frequenz = 90 Blinker/Minute
+                                                EventW = obj.warnings[objectItem][0].event;
+                                                HeadW = obj.warnings[objectItem][0].headline;
+                                        break;
+                                        case ('Bodensee - Mitte')://Suche nach "regionName" == Bodensee - Mitte
+                                                if (obj.warnings[objectItem][0].event == 'STARKWIND') {FreqM = "40";}// wenn "event" = STARKWIND", dann Bodensee Sturmwarnleuchten Frequenz = 40 Blinker/Minute
+                                                else if (obj.warnings[objectItem][0].event == 'STURM') {FreqM = "90";}// wenn "event" = STURM", dann Bodensee Sturmwarnleuchten Frequenz = 90 Blinker/Minute
+                                                EventM = obj.warnings[objectItem][0].event;
+                                                HeadM = obj.warnings[objectItem][0].headline;
+                                        break;
+                                        case ('Bodensee - Ost')://Suche nach "regionName" == Bodensee - Ost
+                                                if (obj.warnings[objectItem][0].event == 'STARKWIND') {FreqO = "40";}// wenn "event" = STARKWIND", dann Bodensee Sturmwarnleuchten Frequenz = 40 Blinker/Minute
+                                                else if (obj.warnings[objectItem][0].event == 'STURM') {FreqO = "90";}// wenn "event" = STURM", dann Bodensee Sturmwarnleuchten Frequenz = 90 Blinker/Minute
+                                                EventO = obj.warnings[objectItem][0].event;
+                                                HeadO = obj.warnings[objectItem][0].headline;
+                                        }
+                                }
+                        }
+					};
+                </script>
+				
+				<!-- Quelle des DWD JSON file --> 
+                <script src="https://www.dwd.de/DWD/warnungen/warnapp/json/warnings.json"></script>
+				
+				<!-- textuelle Darstellung in einer Tabelle --> 
+				<ul id ="meldungen">
+					<li id ="west">
+							<span><script>document.write(EventW+' Warnung');</script><br>  im Bereich BODENSEE-West:</span><br>
+							<span>Warnleuchten blinken mit </span><span><script> document.write(FreqW+' BpM!');</script></span>
+					</li>
+					<li id ="mitte">
+							<span><script>document.write(EventM+' Warnung');</script><br>  im Bereich BODENSEE-Mitte:</span><br>
+							<span>Warnleuchten blinken mit </span><span><script> document.write(FreqM+' BpM!');</script></span>
+					</li>
+					<li id ="ost">
+							<span><script>document.write(EventO+' Warnung');</script><br>  im Bereich BODENSEE-Ost: </span><br>
+							<span>Warnleuchten blinken mit </span><span><script> document.write(FreqO+' BpM!');</script></span>
+					</li>
+                </ul>
+
+				<!-- 
+				- Dateiname des Bildes für die ermittelte Sturmwarnung erstellen 
+				- beim Laden der Funktion wird das Standardbild "faultmessage.png" (id="warnbild") durch das ermittelte Bild ersetzt.
+				  is JS nicht aktiv, bleibt es bei dem Fehlerbild.
+				--> 
+				<script >
+					Bild=FreqW+"_"+FreqM+"_"+FreqO+"_"+size+".png";
+					onload = function(){document.getElementById('warnbild').setAttribute('src',Bild)}
+				</script>
+				
+				<!-- 
+				Start ohne JS: Bild "faultmessage.png" wird geladen.
+				ist JS aktiv, werden DWD Daten geladen, ausgewertet und das Bild ausgetauscht.
+				--> 
+                <img id="warnbild" onclick="location.reload();" src="faultmessage.png"  alt="Fehlerbild"><br>
+                <a>klick picture for data update</a><br><br>
+
+				<footer>
+					<p><a>Quelle der Wetterdaten: </a>
+					<a href="https://www.dwd.de/DWD/warnungen/warnapp/json/warnings.json">www.dwd.de</a>
+					<a>, JSON file.</a></p>
+				</footer>
+		</body>
+</html>
+
+
+
+
